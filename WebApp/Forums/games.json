@@ -1,0 +1,11 @@
+[
+   {
+      "name" : "Street Fighter",
+      "platform": "Xbox360"
+   },
+
+   {
+      "name" : "Crash Bandicoot",
+      "platform": "Playstation"
+   }
+]
