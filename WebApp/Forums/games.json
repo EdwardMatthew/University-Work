@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [
    {
       "name" : "Street Fighter",
@@ -8,4 +9,16 @@
       "name" : "Crash Bandicoot",
       "platform": "Playstation"
    }
+=======
+[
+   {
+      "name" : "Street Fighter",
+      "platform": "Xbox360"
+   },
+
+   {
+      "name" : "Crash Bandicoot",
+      "platform": "Playstation"
+   }
+>>>>>>> 168f5fa345f7d300c690ca49cc53f2d83e7c2363
 ]
