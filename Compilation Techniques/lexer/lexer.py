@@ -11,7 +11,7 @@ test5 = 'b = b + result;'.split()
 testcase = 'result;'
 
 # loop through the source code
-for word in testcase:
+for word in test1:
 
     # datatype validation
     if word in ['str', 'int', 'bool', 'float', 'double']:
@@ -30,7 +30,7 @@ for word in testcase:
         tokens.append(['INTEGER', word])
 
     # end of statement validation
-    elif re.match(';$', word):
+    elif re.match('^;$', word):
         tokens.append(['END_STATEMENT', word])
 
 # output
