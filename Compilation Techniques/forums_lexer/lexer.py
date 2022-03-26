@@ -38,14 +38,13 @@ with open("php.txt") as file_line:
 def pos(char):
     line_count = 1
     col_count = 1
-     
     # check if char is in a particular line 
     for i in range(0, len(data_per_line)):
         if char in data_per_line[i]:
-            line_count += i
+            line_count = i + 1
             
             # counting the columns by using the index of the char 
-            col_count += data_per_line[i].index(char) 
+            col_count = data_per_line[i].index(char) + 1
     return line_count, col_count 
 
 class Token():
@@ -92,7 +91,7 @@ class Lexer():
                     identifier += self.current_char
                     self.next()
                 if identifier == "<?php":
-                    line, col = pos(data, data.index(self.current_char))[0], pos(data, data.index(self.current_char))[1]
+                    line, col = pos(identifier)[0], pos(identifier)[1]
                     tokens.append(Token(line, col, T_PHPOPEN))
                 continue
             # close tag 
@@ -102,7 +101,7 @@ class Lexer():
                     identifier += self.current_char
                     self.next()
                 if identifier == "?>":
-                    line, col = pos(data, data.index(self.current_char))[0], pos(data, data.index(self.current_char))[1]
+                    line, col = pos(identifier)[0], pos(identifier)[1]
                     tokens.append(Token(line, col, T_PHPCLOSE))
 
 
@@ -118,7 +117,7 @@ class Lexer():
                 # check for identifiers 
                 if identifier in IDENTIFIERS:
                     # set the line and columns to word instead of character
-                    line, col = pos(data, data.index(self.current_char))[0], pos(data, data.index(self.current_char))[1]
+                    line, col = pos(identifier)[0], pos(identifier)[1]
                     # check for class or function identifiers 
                     if identifier == IDENTIFIERS[0]: 
                         tokens.append(Token(line, col, T_CLASS))
@@ -154,7 +153,7 @@ class Lexer():
                         decimal_count += 1
                     num += self.current_char
                     self.next()
-                line, col = pos(data, data.index(num))[0], pos(data, data.index(num))[1]
+                line, col = pos(num)[0], pos(num)[1]
                 tokens.append(Token(line, col, T_NUMBER, float(num)))
            
             # assign operator validation
@@ -172,8 +171,9 @@ class Lexer():
             # string literal validation
             elif self.current_char == '"':
                 identifier = '"'
+                line, col = pos(identifier)[0], pos(identifier)[1]
                 self.next()
-                while str(self.current_char) != '"': 
+                while str(self.current_char) != '"':  
                     identifier += self.current_char
                     self.next()
                     if self.current_char == " ":
@@ -184,8 +184,8 @@ class Lexer():
                         self.current_char = "\\"
                 identifier += '"'
                 self.next()
-                line, col = pos(data, data.index(identifier))[0], pos(data, data.index(identifier))[1]
                 tokens.append(Token(line, col, T_LITERAL, identifier))
+
                 
             # concatenate validation
             elif self.current_char == ".":
@@ -207,4 +207,3 @@ def main():
         print(tokens[i])
 
 main()
-
