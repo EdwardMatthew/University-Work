@@ -155,7 +155,8 @@ class Lexer():
                     self.next()
                 line, col = pos(num)[0], pos(num)[1]
                 tokens.append(Token(line, col, T_NUMBER, float(num)))
-           
+                continue           
+
             # assign operator validation
             elif self.current_char == "=":
                 tokens.append(Token(line, col, T_ASSIGN))
@@ -185,8 +186,8 @@ class Lexer():
                 identifier += '"'
                 self.next()
                 tokens.append(Token(line, col, T_LITERAL, identifier))
+                continue 
 
-                
             # concatenate validation
             elif self.current_char == ".":
                 tokens.append(Token(line, col, T_CONCATE))
