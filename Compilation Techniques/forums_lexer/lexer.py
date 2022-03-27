@@ -34,23 +34,33 @@ with open("php.txt") as file:
 with open("php.txt") as file_line:
     data_per_line = file_line.read().splitlines()
 
-# helper function to keep track of the line number
-def pos(char):
-    line_count = 1
-    col_count = 1
+# helper function to keep track of the line NUMBER
+
+def pos(s, index):
+    if not len(s):
+        return 1,1
+    sp = s[:index+1].splitlines(keepends=True)
+    return len(sp), len(sp[-1])
+
+#def pos(char):
+    #line_count = 1
+    #col_count = 1
+
+    #words_per_line = []
     # check if char is in a particular line 
-    for i in range(0, len(data_per_line)):
-        if char in data_per_line[i]:
-            line_count = i + 1
-            
-            # counting the columns by using the index of the char 
-            col_count = data_per_line[i].index(char) + 1
-    return line_count, col_count 
+    #for i in range(0, len(data_per_line)):
+    #    words_per_line.append(data_per_line[i])
+    
+    #for i in range(0, len(words_per_line)):
+    #    if char in words_per_line[i]:
+    #        line_count += i
+    #        col_count += words_per_line[i].index(char)
+    #return line_count, col_count 
 
 class Token():
     def __init__(self, line, col, token_class, value=None):
-        self.line = line
-        self.col = col 
+        self.line = line 
+        self.col = col
         self.token_class = token_class 
         self.value = value
 
@@ -60,7 +70,7 @@ class Token():
 
 class Lexer():
     def __init__(self, text):
-        self.text = text
+        self.text = text 
         self.pos = -1
         self.current_char = None
         self.next()
@@ -68,12 +78,12 @@ class Lexer():
     def next(self):
         self.pos += 1
         self.current_char = (self.text[self.pos] if self.pos < len(self.text) else None)
-    
+	
     def make_tokens(self):
         tokens = []
 
         while self.current_char != None:
-            line, col = pos(self.current_char)[0], pos(self.current_char)[1]
+            line, col = pos(self.text, self.pos)[0], pos(self.text, self.pos)[1]
             if self.current_char == "+":
                 tokens.append(Token(line, col, T_PLUS))
             elif self.current_char == "-":
@@ -91,7 +101,6 @@ class Lexer():
                     identifier += self.current_char
                     self.next()
                 if identifier == "<?php":
-                    line, col = pos(identifier)[0], pos(identifier)[1]
                     tokens.append(Token(line, col, T_PHPOPEN))
                 continue
             # close tag 
@@ -101,7 +110,6 @@ class Lexer():
                     identifier += self.current_char
                     self.next()
                 if identifier == "?>":
-                    line, col = pos(identifier)[0], pos(identifier)[1]
                     tokens.append(Token(line, col, T_PHPCLOSE))
 
 
@@ -116,8 +124,6 @@ class Lexer():
                     self.next()
                 # check for identifiers 
                 if identifier in IDENTIFIERS:
-                    # set the line and columns to word instead of character
-                    line, col = pos(identifier)[0], pos(identifier)[1]
                     # check for class or function identifiers 
                     if identifier == IDENTIFIERS[0]: 
                         tokens.append(Token(line, col, T_CLASS))
@@ -153,7 +159,6 @@ class Lexer():
                         decimal_count += 1
                     num += self.current_char
                     self.next()
-                line, col = pos(num)[0], pos(num)[1]
                 tokens.append(Token(line, col, T_NUMBER, float(num)))
                 continue           
 
@@ -172,7 +177,6 @@ class Lexer():
             # string literal validation
             elif self.current_char == '"':
                 identifier = '"'
-                line, col = pos(identifier)[0], pos(identifier)[1]
                 self.next()
                 while str(self.current_char) != '"':  
                     identifier += self.current_char
@@ -192,7 +196,7 @@ class Lexer():
             elif self.current_char == ".":
                 tokens.append(Token(line, col, T_CONCATE))
            
-                # whitespace addressing
+            # whitespace addressing
             elif self.current_char == " ":
                 pass
 
