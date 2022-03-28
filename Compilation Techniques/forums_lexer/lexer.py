@@ -1,4 +1,5 @@
-import string
+import string 
+import sys
 
 # Token Classes
 T_PLUS = "ADD"
@@ -26,7 +27,8 @@ T_CONCATE = "CONCATE"
 # IDENTIFIERS
 IDENTIFIERS = ["class", "function", "echo"]
 
-# file
+# file 
+filename = "php.txt"
 with open("php.txt") as file:
     data = file.read()
 
@@ -35,28 +37,26 @@ with open("php.txt") as file_line:
     data_per_line = file_line.read().splitlines()
 
 # helper function to keep track of the line NUMBER
-
 def pos(s, index):
     if not len(s):
         return 1,1
     sp = s[:index+1].splitlines(keepends=True)
     return len(sp), len(sp[-1])
 
-#def pos(char):
-    #line_count = 1
-    #col_count = 1
 
-    #words_per_line = []
-    # check if char is in a particular line 
-    #for i in range(0, len(data_per_line)):
-    #    words_per_line.append(data_per_line[i])
-    
-    #for i in range(0, len(words_per_line)):
-    #    if char in words_per_line[i]:
-    #        line_count += i
-    #        col_count += words_per_line[i].index(char)
-    #return line_count, col_count 
+# Error class 
+class Error():
+    def __init__(self, filename, line, col, err_type, message):
+        self.filename = filename 
+        self.line = line 
+        self.col = col
+        self.err_type = err_type
+        self.message = message
 
+    def __repr__(self):
+       return f'{self.filename}, {self.line}, {self.message}, {self.err_type}' 
+
+# Token class for the lexer
 class Token():
     def __init__(self, line, col, token_class, value=None):
         self.line = line 
@@ -189,7 +189,10 @@ class Lexer():
                         self.current_char = "\\"
                 identifier += '"'
                 self.next()
-                tokens.append(Token(line, col, T_LITERAL, identifier))
+                if identifier.startswith('"') and identifier.endswith('"'):
+                    tokens.append(Token(line, col, T_LITERAL, identifier))
+                else:
+                    return Error(filename, line, col, "UnterminatedError", "String literal not terminated")
                 continue 
 
             # concatenate validation
@@ -200,6 +203,8 @@ class Lexer():
             elif self.current_char == " ":
                 pass
 
+            else:
+                return Error(filename, line, col, "SyntaxError", "Invalid PHP code")
             self.next()
         return tokens
 
