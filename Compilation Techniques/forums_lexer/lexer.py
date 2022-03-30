@@ -32,10 +32,6 @@ filename = "php.txt"
 with open("php.txt") as file:
     data = file.read()
 
-# file per line
-with open("php.txt") as file_line:
-    data_per_line = file_line.read().splitlines()
-
 # helper function to keep track of the line NUMBER
 def pos(s, index):
     if not len(s):
@@ -192,7 +188,7 @@ class Lexer():
                 if identifier.startswith('"') and identifier.endswith('"'):
                     tokens.append(Token(line, col, T_LITERAL, identifier))
                 else:
-                    return Error(filename, line, col, "UnterminatedError", "String literal not terminated")
+                    return Error(filename, line, col, "String Literal Not terminated".err_type, self.message)
                 continue 
 
             # concatenate validation
@@ -203,12 +199,9 @@ class Lexer():
             elif self.current_char == " ":
                 pass
 
-            else:
-                return Error(filename, line, col, "SyntaxError", "Invalid PHP code")
             self.next()
         return tokens
 
-    
 
 def main():
     tokens = Lexer(data).make_tokens()
