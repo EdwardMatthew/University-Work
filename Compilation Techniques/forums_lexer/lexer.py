@@ -23,6 +23,9 @@ T_ASSIGN = "ASSIGN"
 T_EOL = "SEMICOLON"
 T_CONCATE = "CONCATE"
 
+# haven't been implemented yet
+T_MULTIOPEN = "MULTIOPEN"
+T_MULTICLOSE = "MULTICLOSE"
 
 # IDENTIFIERS
 IDENTIFIERS = ["class", "function", "echo"]
@@ -39,18 +42,16 @@ def pos(s, index):
     sp = s[:index+1].splitlines(keepends=True)
     return len(sp), len(sp[-1])
 
-
 # Error class 
 class Error():
-    def __init__(self, filename, line, col, err_type, message):
+    def __init__(self, filename, line, col, message):
         self.filename = filename 
         self.line = line 
         self.col = col
-        self.err_type = err_type
         self.message = message
 
-    def __repr__(self):
-       return f'{self.filename}, {self.line}, {self.message}, {self.err_type}' 
+    def printErr(self):
+       print(f'{self.filename}:{self.line}:{self.col}:{self.message}') 
 
 # Token class for the lexer
 class Token():
@@ -60,9 +61,9 @@ class Token():
         self.token_class = token_class 
         self.value = value
 
-    def __repr__(self):
-        if self.value: return f'{self.line}, {self.col}, {self.token_class}, {self.value}'
-        return f'{self.line}, {self.col}, {self.token_class}'
+    def result(self):
+        if self.value: return [self.line, self.col, self.token_class, self.value]
+        return [self.line, self.col, self.token_class]
 
 class Lexer():
     def __init__(self, text):
@@ -81,13 +82,13 @@ class Lexer():
         while self.current_char != None:
             line, col = pos(self.text, self.pos)[0], pos(self.text, self.pos)[1]
             if self.current_char == "+":
-                tokens.append(Token(line, col, T_PLUS))
+                tokens.append(Token(line, col, T_PLUS).result())
             elif self.current_char == "-":
-                tokens.append(Token(line, col, T_MINUS))
+                tokens.append(Token(line, col, T_MINUS).result())
             elif self.current_char == "*":
-                tokens.append(Token(line, col, T_MUL))
+                tokens.append(Token(line, col, T_MUL).result())
             elif self.current_char == "/":
-                tokens.append(Token(line, col, T_DIV))
+                tokens.append(Token(line, col, T_DIV).result())
 
             # php tags validation
             # open tag 
@@ -97,7 +98,7 @@ class Lexer():
                     identifier += self.current_char
                     self.next()
                 if identifier == "<?php":
-                    tokens.append(Token(line, col, T_PHPOPEN))
+                    tokens.append(Token(line, col, T_PHPOPEN).result())
                 continue
             # close tag 
             elif self.current_char in "?":
@@ -106,7 +107,7 @@ class Lexer():
                     identifier += self.current_char
                     self.next()
                 if identifier == "?>":
-                    tokens.append(Token(line, col, T_PHPCLOSE))
+                    tokens.append(Token(line, col, T_PHPCLOSE).result())
 
 
             # identifier and type validation
@@ -122,27 +123,26 @@ class Lexer():
                 if identifier in IDENTIFIERS:
                     # check for class or function identifiers 
                     if identifier == IDENTIFIERS[0]: 
-                        tokens.append(Token(line, col, T_CLASS))
+                        tokens.append(Token(line, col, T_CLASS).result())
                     elif identifier == IDENTIFIERS[1]:
-                        tokens.append(Token(line, col, T_FUNCTION))
+                        tokens.append(Token(line, col, T_FUNCTION).result())
                     elif identifier == IDENTIFIERS[2]:
-                        tokens.append(Token(line, col, T_ECHO))
+                        tokens.append(Token(line, col, T_ECHO).result())
                 else:
-                    tokens.append(Token(line, col, T_IDENTIFIER, identifier))
+                    tokens.append(Token(line, col, T_IDENTIFIER, identifier).result())
                 continue 
 
             # curly validation
             elif self.current_char == "{":
-                tokens.append(Token(line, col, T_CURLYOPEN))
+                tokens.append(Token(line, col, T_CURLYOPEN).result())
             elif self.current_char == "}":
-                tokens.append(Token(line, col, T_CURLYCLOSE))
+                tokens.append(Token(line, col, T_CURLYCLOSE).result())
             
             # regular bracket validation
             elif self.current_char == "(":
-                tokens.append(Token(line, col, T_BOPEN))
+                tokens.append(Token(line, col, T_BOPEN).result())
             elif self.current_char == ")":
-                tokens.append(Token(line, col, T_BCLOSE))
-
+                tokens.append(Token(line, col, T_BCLOSE).result())
 
             # number validation
             elif self.current_char in "0123456789":
@@ -155,26 +155,27 @@ class Lexer():
                         decimal_count += 1
                     num += self.current_char
                     self.next()
-                tokens.append(Token(line, col, T_NUMBER, float(num)))
+                tokens.append(Token(line, col, T_NUMBER, float(num)).result())
                 continue           
 
             # assign operator validation
             elif self.current_char == "=":
-                tokens.append(Token(line, col, T_ASSIGN))
+                tokens.append(Token(line, col, T_ASSIGN).result())
 
             # EOL validation
             elif self.current_char == ";":
-                tokens.append(Token(line, col, T_EOL))
+                tokens.append(Token(line, col, T_EOL).result())
             
             # variable addressing
             elif self.current_char == "$":
-                tokens.append(Token(line, col, T_VAR))
+                tokens.append(Token(line, col, T_VAR).result())
 
             # string literal validation
             elif self.current_char == '"':
                 identifier = '"'
                 self.next()
-                while str(self.current_char) != '"':  
+                # change the condition to check if it is in the end of the code
+                while str(self.current_char) != None:  
                     identifier += self.current_char
                     self.next()
                     if self.current_char == " ":
@@ -183,17 +184,16 @@ class Lexer():
                         self.current_char = "\\\'"
                     elif self.current_char == "\\":
                         self.current_char = "\\"
-                identifier += '"'
+                    # break the loop if it finds a closing double quotes
+                    elif self.current_char == '"':
+                        identifier += '"'
+                        break
                 self.next()
-                if identifier.startswith('"') and identifier.endswith('"'):
-                    tokens.append(Token(line, col, T_LITERAL, identifier))
-                else:
-                    return Error(filename, line, col, "String Literal Not terminated".err_type, self.message)
-                continue 
+                tokens.append(Token(line, col, T_LITERAL, identifier).result())
 
             # concatenate validation
             elif self.current_char == ".":
-                tokens.append(Token(line, col, T_CONCATE))
+                tokens.append(Token(line, col, T_CONCATE).result())
            
             # whitespace addressing
             elif self.current_char == " ":
@@ -201,12 +201,3 @@ class Lexer():
 
             self.next()
         return tokens
-
-
-def main():
-    tokens = Lexer(data).make_tokens()
-    
-    for i in range(0, len(tokens)):
-        print(tokens[i])
-
-main()
