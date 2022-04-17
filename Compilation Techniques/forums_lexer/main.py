@@ -1,3 +1,3 @@
-from pareser import Parser
+from parser import Parser
 
 Parser("php.txt")
