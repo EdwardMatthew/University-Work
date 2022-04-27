@@ -1,6 +1,5 @@
 from lexer import Error
 from lexer import Lexer
-import re
 import string
 
 def Parser(fileName):
@@ -9,7 +8,7 @@ def Parser(fileName):
     identifier_dec = ["BRACKETOPEN", "SEMICOLON", "CURLYOPEN"]
     identifier_op = ["ASSIGN", "ADD", "MINUS", "MUL", "DIV"]
     escapes = ["\\", "'", '"', "$", "n", "t", "r"]
-    valid_string = frozenset(string.ascii_letters + string.digits + '"#\\-$&=' + "'")
+    valid_string = frozenset(string.ascii_letters + string.digits + '"#\\parser-$&=' + "'")
 
     # file 
     with open(fileName) as file:
